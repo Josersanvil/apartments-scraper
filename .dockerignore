@@ -1,0 +1,5 @@
+# Python dockerignore
+data/
+data/**/*
+notebooks/
+notebooks/**/*
