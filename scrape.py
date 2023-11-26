@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 import polars as pl
 import s3fs
@@ -20,6 +21,13 @@ def get_args_parser() -> argparse.ArgumentParser:
         "--s3-dest",
         type=str,
         help="The S3 destination to store the scraped data as an S3 URI.",
+    )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="The log level to use.",
     )
     return parser
 
@@ -65,7 +73,9 @@ def main():
     print("Scraping apartments...")
     parser = get_args_parser()
     args = parser.parse_args()
-    scraper = ParariusScraper(city=args.city)
+    logging.basicConfig()
+    scraper = ParariusScraper(city=args.city.lower())
+    scraper.logger.setLevel(args.log_level)
     apartments = scraper.scrape()
     df = pl.DataFrame(apartments)
     df = clean_df_data(scraper, df)

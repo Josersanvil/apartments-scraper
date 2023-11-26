@@ -1,11 +1,10 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
 from functools import cached_property
-from tempfile import mkdtemp
+import logging
+from typing import TYPE_CHECKING, Any
 import urllib
 
 from bs4 import BeautifulSoup
-import chromedriver_autoinstaller
 from selenium import webdriver
 
 if TYPE_CHECKING:
@@ -21,6 +20,7 @@ class ParariusScraper:
         self.city = city
         self._url = self.SCRAPING_URL.format(city=city)
         self._latest_extraction = None
+        self._logger = self._init_logger()
 
     @property
     def url(self) -> str:
@@ -35,6 +35,17 @@ class ParariusScraper:
         scheme = urllib.parse.urlparse(self.SCRAPING_URL).scheme
         site = urllib.parse.urlparse(self.SCRAPING_URL).netloc
         return f"{scheme}://{site}"
+
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
+
+    def _init_logger(self) -> logging.Logger:
+        """
+        Initializes the logger.
+        """
+        logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        return logger
 
     def extract_info_from_listing(self, listing: "Tag") -> dict[str, Any]:
         """
@@ -90,24 +101,15 @@ class ParariusScraper:
         """
         Gets the Chrome driver.
         """
-        try:
-            chromedriver_autoinstaller.install()
-        except ValueError:
-            pass
         options = webdriver.ChromeOptions()
-        service = webdriver.ChromeService("/opt/chromedriver")
-        options.binary_location = "/opt/chrome/chrome"
-        options.add_argument("--headless=new")
+        service = webdriver.ChromeService()
+        options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1280x1696")
         options.add_argument("--single-process")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-dev-tools")
         options.add_argument("--no-zygote")
-        options.add_argument(f"--user-data-dir={mkdtemp()}")
-        options.add_argument(f"--data-path={mkdtemp()}")
-        options.add_argument(f"--disk-cache-dir={mkdtemp()}")
         options.add_argument("--remote-debugging-port=9222")
         chrome = webdriver.Chrome(options=options, service=service)
         return chrome
@@ -118,6 +120,7 @@ class ParariusScraper:
         """
         self._latest_extraction = datetime.now()
         with self.get_chrome_driver() as driver:
+            self.logger.info(f"Extracting HTML from {self.url}")
             driver.get(self.url)
             return driver.page_source
 
@@ -129,4 +132,5 @@ class ParariusScraper:
         html_src = self.extract_html()
         soup = BeautifulSoup(html_src, "html.parser")
         listings = soup.find_all("li", class_="search-list__item--listing")
+        self.logger.info(f"Found {len(listings)} listings")
         return [self.extract_info_from_listing(listing) for listing in listings]
