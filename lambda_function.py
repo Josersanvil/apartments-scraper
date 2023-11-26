@@ -35,11 +35,8 @@ def handler(event: dict[str, Any], context):
     try:
         scrape(**args)
     except Exception as e:
-        lambda_logger.exception("Received exception while scraping apartments.")
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"status": "error", "message": str(e)}),
-        }
+        lambda_logger.error(f"Received exception '{e}' while scraping apartments.")
+        raise
     return {
         "statusCode": 200,
         "body": json.dumps({"status": "success"}),
