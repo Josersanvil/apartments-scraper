@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any
 import urllib
 
 from bs4 import BeautifulSoup
-from selenium import webdriver
+
+from apartments_scraper.utils.selenium import get_chrome_driver
 
 if TYPE_CHECKING:
     from bs4.element import Tag
@@ -44,7 +45,9 @@ class ParariusScraper:
         """
         Initializes the logger.
         """
-        logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        logger = logging.getLogger(
+            f"apartments_scraper.{__name__}.{self.__class__.__name__}"
+        )
         return logger
 
     def extract_info_from_listing(self, listing: "Tag") -> dict[str, Any]:
@@ -97,29 +100,12 @@ class ParariusScraper:
             },
         }
 
-    def get_chrome_driver(self) -> webdriver.Chrome:
-        """
-        Gets the Chrome driver.
-        """
-        options = webdriver.ChromeOptions()
-        service = webdriver.ChromeService()
-        options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--single-process")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-dev-tools")
-        options.add_argument("--no-zygote")
-        options.add_argument("--remote-debugging-port=9222")
-        chrome = webdriver.Chrome(options=options, service=service)
-        return chrome
-
     def extract_html(self) -> str:
         """
         Extracts the HTML from the Pararius website.
         """
         self._latest_extraction = datetime.now()
-        with self.get_chrome_driver() as driver:
+        with get_chrome_driver() as driver:
             self.logger.info(f"Extracting HTML from {self.url}")
             driver.get(self.url)
             return driver.page_source

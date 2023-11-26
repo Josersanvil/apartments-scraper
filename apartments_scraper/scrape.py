@@ -1,35 +1,14 @@
-import argparse
 import logging
 
 import polars as pl
 import s3fs
 
-from scrapers.pararius import ParariusScraper
+from apartments_scraper.scrapers.pararius import ParariusScraper
 
 
-def get_args_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        "Scrapes websites for apartments in The Netherlands."
-    )
-    parser.add_argument(
-        "--city",
-        type=str,
-        help="The city to scrape for apartments",
-        required=True,
-    )
-    parser.add_argument(
-        "--s3-dest",
-        type=str,
-        help="The S3 destination to store the scraped data as an S3 URI.",
-    )
-    parser.add_argument(
-        "--log-level",
-        type=str,
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="The log level to use.",
-    )
-    return parser
+def get_logger():
+    logger = logging.getLogger(f"apartments_scraper.{__name__}")
+    return logger
 
 
 def clean_df_data(scraper: ParariusScraper, df: pl.DataFrame) -> pl.DataFrame:
@@ -59,28 +38,28 @@ def clean_df_data(scraper: ParariusScraper, df: pl.DataFrame) -> pl.DataFrame:
 
 
 def write_df_to_s3(df: pl.DataFrame, s3_dest: str) -> None:
+    logger = get_logger()
     city = df["city"][0]
     date = df["date"][0]
     ts = df["extracted_at"][0].timestamp()
     fs = s3fs.S3FileSystem()
     # Partition the data by city and date:
-    dest_path = s3_dest.rstrip("/") + f"/city={city}/date={date}/{ts}.parquet"
+    dest_path = s3_dest.rstrip("/") + f"/city={city}/date={date}/{int(ts)}.parquet"
+    logger.info(f"Writing dataframe to S3 destination: '{dest_path}'")
     with fs.open(dest_path, "wb") as f:
         df.select(pl.exclude("city", "date")).write_parquet(f)
 
 
-def main():
-    print("Scraping apartments...")
-    parser = get_args_parser()
-    args = parser.parse_args()
+def scrape(city: str, s3_dest: str = None, log_level: int | str = "INFO") -> None:
     logging.basicConfig()
-    scraper = ParariusScraper(city=args.city.lower())
-    scraper.logger.setLevel(args.log_level)
+    logger = get_logger()
+    logger.setLevel(log_level)
+    logger.info(f"Scraping apartments for city: '{city}'")
+    scraper = ParariusScraper(city=city.lower())
+    scraper.logger.setLevel(log_level)
     apartments = scraper.scrape()
     df = pl.DataFrame(apartments)
     df = clean_df_data(scraper, df)
-    write_df_to_s3(df, args.s3_dest)
-
-
-if __name__ == "__main__":
-    main()
+    if s3_dest:
+        write_df_to_s3(df, s3_dest)
+    logger.info(f"Scraped {len(apartments)} apartments for city: '{city}'")

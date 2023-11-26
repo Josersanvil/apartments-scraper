@@ -26,7 +26,7 @@ COPY --from=build /opt/chromedriver-linux64 /app/
 
 ## Copy the source code
 WORKDIR /app
-COPY . /app
+COPY ./apartments_scraper /app/apartments_scraper
 
 ## Run the scraper as the entrypoint
-ENTRYPOINT [ "python", "scrape.py" ]
+ENTRYPOINT [ "python", "-m", "apartments_scraper" ]
