@@ -22,9 +22,8 @@ def handler(event: dict[str, Any], context):
         f"Got event for invocation request with id: '{context.aws_request_id}'"
     )
     print(json.dumps(event))
-    payload = json.loads(event["payload"])
     args = {
-        **payload,
+        **event,
         "s3_dest": os.environ.get(
             "APARTMENTS_SCRAPER_TARGET_S3_DEST",
             "s3://my-data-integrations/apartments-scraping/apartments",
