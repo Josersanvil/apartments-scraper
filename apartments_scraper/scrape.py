@@ -50,12 +50,12 @@ def write_df_to_s3(df: pl.DataFrame, s3_dest: str) -> None:
         df.select(pl.exclude("city", "date")).write_parquet(f)
 
 
-def scrape(city: str, s3_dest: str = None, log_level: int | str = "INFO") -> None:
+def scrape(city: str, s3_dest: str = None, max_pages=None, log_level: int | str = "INFO") -> None:
     logging.basicConfig()
     logger = get_logger()
     logger.setLevel(log_level)
     logger.info(f"Scraping apartments for city: '{city}'")
-    scraper = ParariusScraper(city=city.lower())
+    scraper = ParariusScraper(city=city.lower(), max_pages=max_pages)
     scraper.logger.setLevel(log_level)
     apartments = scraper.scrape()
     df = pl.DataFrame(apartments)

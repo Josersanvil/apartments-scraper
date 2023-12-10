@@ -13,6 +13,12 @@ def get_args_parser() -> argparse.ArgumentParser:
         required=True,
     )
     parser.add_argument(
+        "--max-pages",
+        type=int,
+        help="The maximum number of pages to scrape.",
+        default=None,
+    )
+    parser.add_argument(
         "--s3-dest",
         type=str,
         help="The S3 destination to store the scraped data as an S3 URI.",
@@ -34,4 +40,5 @@ if __name__ == "__main__":
         city=args.city,
         s3_dest=args.s3_dest,
         log_level=args.log_level,
+        max_pages=args.max_pages,
     )
