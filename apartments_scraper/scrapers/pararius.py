@@ -106,9 +106,9 @@ class ParariusScraper:
             "real_estate_company": real_estate_company,
             "real_estate_company_url": self.base_url + real_estate_company_url,
             "features": {
-                "surface_area": surface_area.text.strip(),
-                "n_rooms": n_rooms.text.strip(),
-                "interior_type": interior_type.text.strip(),
+                "surface_area": surface_area.text.strip() if surface_area else None,
+                "n_rooms": n_rooms.text.strip() if n_rooms else None,
+                "interior_type": interior_type.text.strip() if interior_type else None,
             },
         }
 
