@@ -2,6 +2,13 @@ name: Deploy Lambda Function
 
 on:
   push:
+    paths:
+      - lambda.Dockerfile
+      - lambda_function.py
+      - requirements.txt
+      - Dockerfile
+      - apartments_scraper/**
+      - .github/workflows/cd_deploy_lambda.yaml
     branches:
       - main
 
