@@ -41,7 +41,7 @@ jobs:
                   # Build a docker container and
                   # push it to ECR so that it can
                   # be deployed to ECS.
-                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} .
+                  docker build -f lambda.Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} .
                   docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
 
             - name: Update Lambda Function
