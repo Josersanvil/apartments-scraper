@@ -1,9 +1,9 @@
-from datetime import datetime
-from functools import cached_property
 import logging
 import os
-from typing import TYPE_CHECKING, Any
 import urllib
+from datetime import datetime
+from functools import cached_property
+from typing import TYPE_CHECKING, Any
 
 from bs4 import BeautifulSoup
 
@@ -20,10 +20,10 @@ class ParariusScraper:
     )
     DEFAULT_MAX_PAGES = 3
 
-    def __init__(self, city: str, max_pages:int=None) -> None:
+    def __init__(self, city: str, max_pages: int = None) -> None:
         """
         Instantiates an object that can scrape the Pararius website for apartments.
-        
+
         @param city: The city in The Netherlands to scrape apartments for.
         @param max_pages: The maximum number of pages to scrape.
         """
@@ -34,7 +34,9 @@ class ParariusScraper:
 
     @cached_property
     def url(self) -> str:
-        scraping_url = os.environ.get("PARARIUS_SCRAPING_URL", self.DEFAULT_SCRAPING_URL)
+        scraping_url = os.environ.get(
+            "PARARIUS_SCRAPING_URL", self.DEFAULT_SCRAPING_URL
+        )
         city_part = "-".join(self.city.lower().split())
         scraping_url = scraping_url.format(city=city_part)
         return scraping_url
@@ -131,14 +133,20 @@ class ParariusScraper:
         listings_data = []
         page_url = None
         for i in range(self.max_pages):
-            self.logger.info(f"Scraping page {i+1}/{self.max_pages} from site {self.SITE_NAME}")
+            self.logger.info(
+                f"Scraping page {i+1}/{self.max_pages} from site {self.SITE_NAME}"
+            )
             html_src = self.extract_html(url=page_url)
             soup = BeautifulSoup(html_src, "html.parser")
             listings = soup.find_all("li", class_="search-list__item--listing")
             self.logger.info(f"Found {len(listings)} listings")
-            listings_data.extend([self.extract_info_from_listing(listing) for listing in listings])
+            listings_data.extend(
+                [self.extract_info_from_listing(listing) for listing in listings]
+            )
             # Set the next page URL:
-            next_page_button = soup.find("a", class_="pagination__link pagination__link--next")
+            next_page_button = soup.find(
+                "a", class_="pagination__link pagination__link--next"
+            )
             next_page_url = next_page_button.get("href") if next_page_button else None
             if next_page_url:
                 page_url = self.base_url + next_page_url

@@ -1,4 +1,5 @@
 import argparse
+
 from apartments_scraper.scrape import scrape
 
 
@@ -24,6 +25,19 @@ def get_args_parser() -> argparse.ArgumentParser:
         help="The S3 destination to store the scraped data as an S3 URI.",
     )
     parser.add_argument(
+        "--outdir",
+        "-o",
+        type=str,
+        help="The locals directory to store the scraped data in.",
+    )
+    parser.add_argument(
+        "--format",
+        type=str,
+        choices=["parquet", "csv"],
+        default="csv",
+        help="The file format to write the scraped data in.",
+    )
+    parser.add_argument(
         "--log-level",
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -38,7 +52,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     scrape(
         city=args.city,
+        outdir=args.outdir,
         s3_dest=args.s3_dest,
+        format=args.format,
         log_level=args.log_level,
         max_pages=args.max_pages,
     )

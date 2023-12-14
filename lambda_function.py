@@ -1,7 +1,7 @@
-from typing import Any
 import json
 import logging
 import os
+from typing import Any
 
 from apartments_scraper.scrape import scrape
 
@@ -39,6 +39,7 @@ def handler(event: dict[str, Any], context):
         ),
         "max_pages": max_pages,
         "log_level": lambda_logger.level,
+        "format": "parquet",
     }
     ## Initiate the scraper:
     try:
