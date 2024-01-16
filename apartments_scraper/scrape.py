@@ -96,6 +96,7 @@ def scrape(
     scraper.logger.setLevel(log_level)
     apartments = scraper.scrape()
     df = pl.DataFrame(apartments)
+    logger.info("Cleaning scraped data")
     df = clean_df_data(scraper, df)
     if s3_dest:
         write_df(df, s3_dest, format=format)
