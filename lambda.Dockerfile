@@ -36,4 +36,3 @@ COPY ./lambda_function.py ${LAMBDA_TASK_ROOT}/
 
 ## Run the scraper
 CMD ["lambda_function.handler"]
-ENTRYPOINT [ "python", "-m", "apartments_scraper" ]
